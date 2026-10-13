@@ -1,0 +1,33 @@
+{
+  "kind": "comparison",
+  "title": "【虛構驗收資料】會前草案對照表",
+  "law": "學生會議事文書示例規則（虛構）",
+  "font": "全字庫正楷體",
+  "proposals": [
+    {"id": "學生會案", "proposer": "學生會", "group": "學生會", "articles": [
+      {"key": "art4", "number": "第四條", "action": "修正", "text": "會議應於五日前公告。"},
+      {"key": "art8", "number": "第八條", "action": "修正", "text": "報告應於十日前送交秘書處。"}
+    ]},
+    {"id": "甲案", "proposer": "議員甲", "group": "議員", "articles": [
+      {"key": "art4", "number": "第四條", "action": "修正", "text": "會議應於七日前公告。"},
+      {"key": "art16", "number": "第十六條", "action": "修正", "text": "委員會得邀請相關人員列席。"},
+      {"key": "art20", "number": "第二十條", "action": "刪除", "text": ""},
+      {"key": "new21", "number": "第二十一條", "action": "增訂", "text": "審查資料應公開。"},
+      {"key": "art30", "old_number": "第三十條", "number": "第三十一條", "action": "條次變更", "text": "本規則經通過後施行。"}
+    ]},
+    {"id": "乙案", "proposer": "議員乙", "group": "議員", "articles": [
+      {"key": "art4", "number": "第四條", "action": "修正", "text": "會議應於三日前公告。"},
+      {"key": "art8", "number": "第八條", "action": "修正", "text": "報告應於十四日前送交秘書處。"}
+    ]}
+  ],
+  "rows": [
+    {"key": "art4", "label": "第四條", "current": {"number": "第四條", "text": "會議應於二日前公告。"}, "explanation": "助手整理文字差異：各案公告期間不同。"},
+    {"key": "art8", "label": "第八條", "current": {"number": "第八條", "text": "報告應於五日前送交秘書處。"}},
+    {"key": "art16", "label": "第十六條", "current": {"number": "第十六條", "text": "委員會得邀請學生列席。"}},
+    {"key": "art20", "label": "第二十條（刪除案）", "current": {"number": "第二十條", "text": "會議紀錄以紙本保存。"}},
+    {"key": "new21", "label": "增訂第二十一條", "current": null},
+    {"key": "art30", "label": "原第三十條 → 擬第三十一條", "current": {"number": "第三十條", "text": "本規則經通過後施行。"}},
+    {"key": "art40", "label": "第四十條", "current": {"number": "第四十條", "text": "相關資料由秘書處保存。"}},
+    {"key": "art50", "label": "第五十條", "current": {"number": "第五十條", "text": "附件為本規則之一部分。"}}
+  ]
+}
