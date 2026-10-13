@@ -236,7 +236,6 @@ def write_docx(data, destination):
             tr.append(tc)
         table.append(tr)
     body.append(table)
-    body.append(paragraph('文件末尾', font))
     section = element('sectPr')
     section.append(element('pgSz', {'w': 16838, 'h': 11906, 'orient': 'landscape'}))
     section.append(element('pgMar', {'top': 850, 'right': 1219, 'bottom': 850, 'left': 1219, 'header': 425, 'footer': 425, 'gutter': 0}))
