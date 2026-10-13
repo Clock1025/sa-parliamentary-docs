@@ -212,7 +212,7 @@ def write_docx(data, destination):
     tp.append(borders)
     table.append(tp)
     if data['kind'] == 'report':
-        widths = [3600, 3000, 3000, 3000, 1800] if len(headers) == 5 else [4200, 3900, 3900, 2400]
+        widths = [2500, 2500, 2900, 2500, 4000] if len(headers) == 5 else [3200, 3200, 3200, 4800]
     else:
         widths = [1500, 3000, 3900, 3900, 2100] if len(headers) == 5 else [1800] + [int(12600 / (len(headers) - 1))] * (len(headers) - 1)
     grid = element('tblGrid')

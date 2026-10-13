@@ -166,7 +166,8 @@ class CommitteeReportTests(unittest.TestCase):
                     self.assertFalse(xml.findall('.//w:trHeight', NS))
                     widths = [int(n.get(f'{{{render.W}}}w')) for n in xml.findall('.//w:tblGrid/w:gridCol', NS)]
                     self.assertEqual(sum(widths), 14400)
-                    self.assertGreater(widths[0], widths[1])
+                    self.assertGreater(widths[-1], max(widths[:-1]))
+                    self.assertGreaterEqual(min(widths), 2500)
                     for node in xml.findall('.//w:rFonts', NS):
                         for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
                             self.assertEqual(node.get(f'{{{render.W}}}{attr}'), font)
