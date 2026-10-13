@@ -150,4 +150,10 @@ examples/                         虛構可執行範例
 tests/                            自動測試與對話驗收案例
 ```
 
-授權：MIT，見 [LICENSE](LICENSE)。
+## 授權
+
+本專案採用 [Mozilla Public License 2.0（MPL-2.0）](LICENSE)。一般使用者可以自由使用、修改及散布；散布修改過的 MPL 授權檔案時，須遵守相應的原始碼提供義務並保留必要授權聲明。詳見 [官方授權說明](https://www.mozilla.org/MPL/2.0/)與[專案授權及著作權聲明](NOTICE.md)。
+
+使用本專案讓 AI 產生的議事文件，不會僅因此自動受到 MPL 授權。
+
+原有 MIT 授權版本的既有權利不因本次變更而撤回；其完整條款及原始著作權聲明保留於 [MIT 歷史授權](licenses/MIT-legacy.txt)。該檔記錄舊版本授權，不表示本專案的新變更同時採用 MIT。
