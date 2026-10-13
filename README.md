@@ -2,9 +2,18 @@
 
 提供學生自治組織使用的 AI 議事文書生成 Skills。第一個可用工具是 **committee-report**：整理會前多案對照、接受自由會中筆記，在集中確認後製作委員會審查報告。
 
+## 快速開始
+
+第一次使用，先開啟 [START-HERE.md](START-HERE.md)，複製短版啟動提示詞貼進 AI。不需安裝、懂 Git 或設定 API。
+
+- **AI 可以讀 GitHub：**使用 START-HERE 的啟動提示詞，讓 AI 先完整讀取 `skills/committee-report/SKILL.md` 再工作。
+- **AI 不能讀 GitHub：**依 START-HERE 的方式貼入或上傳完整 `SKILL.md`；讀取失敗時應明確告知，不得假裝已讀取。
+
+接下來的會前、會中與會後操作，請看[第一次使用說明](docs/first-time-user.md)。完整提示詞備援保留在下方。
+
 ## 直接使用，零安裝
 
-開啟 [完整可複製提示詞](prompts/committee-report.md)，複製全文貼進 ChatGPT 或 Claude，再貼上現行條文及草案，或直接輸入會中紀錄。不需安裝、連接 GitHub、API 金鑰或先設定學校制度。若平台支援 Skill，可使用 [SKILL.md](skills/committee-report/SKILL.md)。
+需要獨立提示詞備援時，開啟 [完整可複製提示詞](prompts/committee-report.md)，複製全文貼進 AI，再貼上現行條文及草案，或直接輸入會中紀錄。不需安裝、連接 GitHub、API 金鑰或先設定學校制度。[SKILL.md](skills/committee-report/SKILL.md)仍是 Skill 的原始檔案。
 
 ### 一鍵複製完整提示詞
 
@@ -141,6 +150,8 @@ Git 流程：由 `main` 建立 `develop`，功能分支開 PR 至 `develop`；�
 ## 目錄
 
 ```text
+START-HERE.md                     新手啟動入口
+docs/first-time-user.md            會前、會中與會後操作說明
 prompts/committee-report.md        完整獨立提示詞
 skills/committee-report/
   SKILL.md                        Skill 入口
