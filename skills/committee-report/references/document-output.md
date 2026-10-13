@@ -1,0 +1,41 @@
+# 檔案契約與操作方式
+
+這份文件給具備檔案執行能力的助手／維護者使用。一般使用者只需貼提示詞和資料。工具是確定性的文件產生器，不是自然語言模型；理解會中紀錄、集中確認與來源真實性由助手負責。
+
+## 實際執行
+
+Python 3.9 以上，只用標準函式庫，不需 pip。從儲存庫根目錄：
+
+```sh
+python3 skills/committee-report/scripts/render.py examples/comparison.json output/comparison.docx
+python3 skills/committee-report/scripts/render.py examples/confirmed-report.json output/report.docx --pdf
+```
+
+輸出 JSON 回報 DOCX 路徑、字體及 PDF 狀態。退出碼：0 = 要求的產物均完成；1 = 輸入錯誤或 DOCX 寫入失敗；2 = DOCX 已產生，但所要求的 PDF 未產生。既有 DOCX／PDF 不覆寫，請換版本檔名。範例是虛構驗收資料，不能用來冒充實際會議確認。
+
+DOCX 即使本機沒有楷體仍可建立，因為內容只指定字體而不內嵌。接收端需有相同字體才可正確呈現。若需要 PDF，維護者的執行環境須提供 LibreOffice（soffice）、Fontconfig（fc-list）、指定楷體及 Poppler（pdffonts）；工具不自行安裝。這些不是一般使用者的使用前置條件。沒有這些能力仍可交付 DOCX，並誠實說明 PDF 限制。
+
+PDF 從剛產生的 DOCX 轉換，使用獨立暫存目錄與 LibreOffice profile，不接受先前殘留檔案。檢查 PDF 標頭、實際內嵌楷體；缺少字體或檢查工具時停止，不用黑體替換。工具不等於視覺校稿：助手仍應檢查長表格、跨頁表頭、末頁與字形，未完成檢視要據實說明。特殊字形可能缺字，即使同屬楷體仍須檢視。
+
+## JSON 最小模型
+
+完整範例見 `examples/`。UTF-8 JSON：
+
+- `kind`：`comparison` 或 `report`。
+- `law`、`title`：法規與文件名稱；`committee`、`meeting`、`date` 有來源才填。
+- `font`：`全字庫正楷體`（預設）或 `標楷體`。
+- `proposals`：各案 `id`、`proposer`、`group`（`學生會`／`議員`）、`articles`。未知分類或對應須先保留待確認草稿，不冒填分類以通過工具。
+- `articles`：`key` 對應條文列，`number` 為本案條次，`action` 為 `修正`／`增訂`／`刪除`／`條次變更`，`text` 保留原文。刪除可空字串；條次變更可加 `old_number`，否則用現行條次。各案不共用可變文字。
+- `rows`：`key` 為穩定對應鍵，不等同條次；`label` 顯示對應關係；`current` 為 `{number, text}`，增訂用 `null`；`explanation` 標示說明來源，未填顯示未提供。多個新增條文即使條號相同也必須使用不同 key。
+- 正式報告的 `confirmation`：`confirmed: true`、`by`、`version`、`message`。須來自使用者對這份資料的集中確認，保留版本與原話；不能由助手自行確認。工具無法驗證對話真實性，不應被視為議決認證。
+- 每列 `decision`：`status`、`note`（指令原話與來源）。狀態允許照案通過、修正通過、刪除、增訂、保留送大會、尚未審查、待確認；省略 decision 視為尚未審查。
+
+照案通過用 `proposal_id` 引用原文；修正通過用 `proposal_id` 及 `edits: [{old, new}]`，依順序進行唯一字串替換。old 重複或不存在即拒絕，不猜位置；空 new 支援明確刪句，插入文字可用唯一片段替換為含插入內容的新片段。改條次可在修正通過的 decision 加 `number`。增訂可引用增訂案或附使用者完整文字。
+
+整條重寫用 `text`、`number`、`text_source: 使用者提供`；只可在使用者確實提供全文時使用。不得用這個欄位繞過來源要求。跨案局部拼接超出此工具範圍，Skill 可依使用者明確指示、集中確認後以其他文件工具輸出並記錄各段來源。
+
+保留／尚未審查／待確認不能附 `proposal_id`、`text` 或 `edits`；討論寫入 `note`。刪除必須對應現行條文；增訂必須是新列。所有狀態都需先集中確認才產生正式報告，未決狀態仍然是未決。
+
+## 排版
+
+A4 橫式、12pt、楷體明確設定在文字與預設樣式；固定欄寬、文字自然換行、表頭重複、儲存格上對齊，不固定列高、不禁止跨頁分列。會前表最多五欄，議員多案同格分段；報告四欄，完整條文與結果分開。這是可編輯 OOXML 表格，不是圖片。工具未產生頁首頁尾，未虛構表決紀錄。
