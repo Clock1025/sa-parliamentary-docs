@@ -120,16 +120,57 @@ class CommitteeReportTests(unittest.TestCase):
                 with self.assertRaises(FileExistsError):
                     render.write_docx(data, path)
 
-    def test_report_file_has_correct_outcomes(self):
-        with tempfile.TemporaryDirectory() as temp:
-            path = render.write_docx(fixture('confirmed-report'), Path(temp, 'report.docx'))
-            with zipfile.ZipFile(path) as archive:
-                xml = ET.fromstring(archive.read('word/document.xml'))
-            rows = xml.findall('.//w:tbl/w:tr', NS)
-            cells = [['\n'.join(n.text or '' for n in tc.findall('.//w:t', NS)) for tc in row.findall('w:tc', NS)] for row in rows]
-            self.assertEqual(cells[2][2], '第八條\n報告應於七日前送交秘書處。')
-            self.assertEqual(cells[3][1:3], ['保留送大會', '未定稿；不列為通過條文'])
-            self.assertEqual(cells[8][1], '待確認')
+    def test_report_file_preserves_all_sources_and_outcomes(self):
+        for has_student in (False, True):
+            for font in render.FONTS:
+                with self.subTest(has_student=has_student, font=font):
+                    data = fixture('confirmed-report')
+                    if not has_student:
+                        data['proposals'] = [p for p in data['proposals'] if p['group'] != '學生會']
+                    data['font'] = font
+                    original = copy.deepcopy(data)
+                    with tempfile.TemporaryDirectory() as temp:
+                        path = render.write_docx(data, Path(temp, 'report.docx'))
+                        with zipfile.ZipFile(path) as archive:
+                            xml = ET.fromstring(archive.read('word/document.xml'))
+                    rows = xml.findall('.//w:tbl/w:tr', NS)
+                    cells = [['\n'.join(n.text or '' for n in tc.findall('.//w:t', NS)) for tc in row.findall('w:tc', NS)] for row in rows]
+                    headers = ['審查會通過條文'] + (['學生會提案條文'] if has_student else []) + ['各議員提案條文', '現行條文', '說明']
+                    self.assertEqual(cells[0], headers)
+                    self.assertTrue(all(len(row) == len(headers) for row in cells))
+                    self.assertEqual(cells[2][0], '第八條\n【修正通過】\n第八條\n報告應於七日前送交秘書處。')
+                    self.assertIn('報告應於十四日前送交秘書處。', cells[2][headers.index('各議員提案條文')])
+                    for row, source in zip(cells[1:], data['rows']):
+                        columns = dict(zip(headers, row))
+                        status = source['decision']['status']
+                        self.assertIn('【' + status + '】', row[0])
+                        if status in ('保留送大會', '尚未審查', '待確認'):
+                            self.assertEqual(row[0], source['label'] + '\n【' + status + '】\n未定稿；不列為通過條文')
+                        current = source['current']
+                        self.assertEqual(columns['現行條文'], current['number'] + '\n' + current['text'] if current else '【增訂；無現行條文】')
+                        self.assertIn('來源說明：' + source.get('explanation', '未提供'), columns['說明'])
+                        self.assertIn('審查結論：' + status, columns['說明'])
+                        self.assertIn('審查紀錄：' + source['decision']['note'], columns['說明'])
+                        for proposal in data['proposals']:
+                            for article in proposal['articles']:
+                                if article['key'] != source['key']:
+                                    continue
+                                value = columns['學生會提案條文' if proposal['group'] == '學生會' else '各議員提案條文']
+                                self.assertIn(proposal['id'] + '｜' + proposal['proposer'], value)
+                                self.assertIn(article['number'], value)
+                                self.assertIn(article['text'] if article['action'] != '刪除' else '【刪除】', value)
+                                if article['action'] == '條次變更':
+                                    self.assertIn(article['old_number'] + ' → ' + article['number'], value)
+                    self.assertEqual(len(xml.findall('.//w:tblHeader', NS)), 1)
+                    self.assertFalse(xml.findall('.//w:cantSplit', NS))
+                    self.assertFalse(xml.findall('.//w:trHeight', NS))
+                    widths = [int(n.get(f'{{{render.W}}}w')) for n in xml.findall('.//w:tblGrid/w:gridCol', NS)]
+                    self.assertEqual(sum(widths), 14400)
+                    self.assertGreater(widths[0], widths[1])
+                    for node in xml.findall('.//w:rFonts', NS):
+                        for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
+                            self.assertEqual(node.get(f'{{{render.W}}}{attr}'), font)
+                    self.assertEqual(data, original)
 
     def test_pdf_missing_converter_and_font_reported(self):
         with patch.object(render.shutil, 'which', return_value=None):

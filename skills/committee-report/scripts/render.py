@@ -140,6 +140,27 @@ def comparison_rows(data):
     return headers, result
 
 
+def report_rows(data):
+    # Reuse the source columns so report decisions never replace proposal text.
+    source_headers, source_rows = comparison_rows(data)
+    has_student = '學生會提案' in source_headers
+    headers = ['審查會通過條文'] + (['學生會提案條文'] if has_student else []) + ['各議員提案條文', '現行條文', '說明']
+    result = []
+    for row, source_cells in zip(data['rows'], source_rows):
+        sources = dict(zip(source_headers, source_cells))
+        status, text = resolve(data, row)
+        cells = [f"{row['label']}\n【{status}】\n{text}"]
+        if has_student:
+            cells.append(sources['學生會提案'])
+        cells.extend([
+            sources.get('議員提案', '未提案（不代表照現行通過）'),
+            sources['現行條文'],
+            f"來源說明：{sources['說明']}\n審查結論：{status}\n審查紀錄：{row.get('decision', {}).get('note', '未提供')}",
+        ])
+        result.append(cells)
+    return headers, result
+
+
 def paragraph(text, font, bold=False):
     p = element('p')
     props = element('pPr')
@@ -176,8 +197,7 @@ def write_docx(data, destination):
             body.append(paragraph({'committee': '委員會', 'meeting': '會議', 'date': '日期'}[field] + '：' + data[field], font))
     if data['kind'] == 'report':
         body.append(paragraph('確認者：' + data['confirmation']['by'] + '；確認版：' + data['confirmation']['version'] + '\n確認紀錄：' + data['confirmation']['message'] + '\n本報告僅記載已提供並確認的結果，未決條文另列。', font))
-        headers = ['條文／對應關係', '審查結果', '確認後條文', '說明／紀錄']
-        rows = [[row['label'], *resolve(data, row), row.get('decision', {}).get('note', '未提供')] for row in data['rows']]
+        headers, rows = report_rows(data)
     else:
         headers, rows = comparison_rows(data)
     table = element('tbl')
@@ -189,7 +209,10 @@ def write_docx(data, destination):
         borders.append(element(edge, {'val': 'single', 'sz': 4, 'color': '808080'}))
     tp.append(borders)
     table.append(tp)
-    widths = ([1500, 3000, 3900, 3900, 2100] if len(headers) == 5 else [1800, 2800, 6600, 3200] if data['kind'] == 'report' else [1800] + [int(12600 / (len(headers) - 1))] * (len(headers) - 1))
+    if data['kind'] == 'report':
+        widths = [3600, 3000, 3000, 3000, 1800] if len(headers) == 5 else [4200, 3900, 3900, 2400]
+    else:
+        widths = [1500, 3000, 3900, 3900, 2100] if len(headers) == 5 else [1800] + [int(12600 / (len(headers) - 1))] * (len(headers) - 1)
     grid = element('tblGrid')
     for width in widths:
         grid.append(element('gridCol', {'w': width}))
