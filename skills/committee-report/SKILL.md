@@ -66,7 +66,7 @@ description: 為學生自治組織整理同法多案會前對照表，接受自�
 
 1. 會前表可輸出明確標記版本的 DOCX；正式報告只從使用者已確認的本版結果產生。不要用 Markdown 更名為 .docx，也不要用表格截圖冒充文件。
 2. 使用真正的 WordprocessingML 表格，儲存格可編輯。A4 橫式、適當邊界、約 12pt 字級；欄數最多五欄，為條文保留主要寬度。表頭跨頁重複，長條文自然換行，允許資料列跨頁，避免固定列高截斷或整列被推到空白頁。保留條次與各版本標籤。
-3. 全文指定「全字庫正楷體」或「標楷體」，設定 OOXML 的 w:rFonts ascii、hAnsi、eastAsia、cs，包含一般樣式、表格、標題及頁首頁尾（若有）。不得無聲替換成黑體。DOCX 中指定字體不表示已內嵌或接收端已安裝；要明確告知字體名稱及開啟端需求。
+3. 全文指定全字庫的「正楷體」或「標楷體」（全字庫正楷體是通用稱呼，DOCX 家族名稱寫「正楷體」），設定 OOXML 的 w:rFonts ascii、hAnsi、eastAsia、cs，包含一般樣式、表格、標題及頁首頁尾（若有）。不得無聲替換成黑體。DOCX 中指定字體不表示已內嵌或接收端已安裝；要明確告知字體名稱及開啟端需求。
 4. 若有 Python，可用已提供的文件工具、python-docx 或標準函式庫 zipfile + xml.etree.ElementTree 建立真正 DOCX。標準函式庫法建立 [Content_Types].xml、_rels/.rels、word/document.xml、word/styles.xml、word/_rels/document.xml.rels，並用 w:tbl/w:tr/w:tc 形成真實表格、w:tblHeader 設定表頭。不需要伺服器、資料庫或付費 API；不可要求使用者安裝 Python。
 5. PDF 優先從同一份確認後的 DOCX 轉換。先確認指定楷體實際可用及 Word／LibreOffice 等轉換器存在；不可只看檔案副檔名或程序退出碼就宣稱成功。檢查產出的 PDF、實際字體（例如 pdffonts）與分頁。指定字體缺漏、實際替換、轉換失敗或無法驗證時，明確回報限制，不交付假稱合格的 PDF。不用黑體代替楷體。
 6. 清楚回報「DOCX 已產生／無法產生」「PDF 已產生／未要求／無法轉換」及原因；只連結實際存在的附件。不覆寫既有確認文件，另存新版本。

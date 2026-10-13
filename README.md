@@ -29,7 +29,7 @@
 
 一般使用者不需執行工具。檔案產生由具備能力的 AI 執行環境完成；純文字平台只能給可複製內容，不能宣稱已產生 DOCX／PDF。
 
-文件指定全字庫正楷體或標楷體，DOCX 不內嵌字體；開啟端仍需具備指定字體。PDF 需要轉換器及字體，缺漏時明確告知，不能無聲換成黑體。維護者的執行方法、資料契約、退出碼及限制見 [文件產生說明](skills/committee-report/references/document-output.md)。
+文件指定全字庫的「正楷體」（舊輸入名「全字庫正楷體」仍相容）或標楷體，DOCX 不內嵌字體；開啟端仍需具備指定字體。PDF 需要轉換器及字體，缺漏時明確告知，不能無聲換成黑體。維護者的執行方法、資料契約、退出碼及限制見 [文件產生說明](skills/committee-report/references/document-output.md)。
 
 [會前示例](examples/comparison.json) 與 [確認後報告示例](examples/confirmed-report.json) 均為虛構驗收資料，不能冒充真實會議紀錄。
 

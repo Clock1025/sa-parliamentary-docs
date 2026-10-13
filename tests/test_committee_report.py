@@ -172,6 +172,29 @@ class CommitteeReportTests(unittest.TestCase):
                             self.assertEqual(node.get(f'{{{render.W}}}{attr}'), font)
                     self.assertEqual(data, original)
 
+    def test_legacy_font_name_writes_actual_kai_family(self):
+        data = fixture('confirmed-report')
+        self.assertEqual(data['font'], '全字庫正楷體')
+        with tempfile.TemporaryDirectory() as temp:
+            path = render.write_docx(data, Path(temp, 'font.docx'))
+            with zipfile.ZipFile(path) as archive:
+                for name in ('word/document.xml', 'word/styles.xml'):
+                    xml = ET.fromstring(archive.read(name))
+                    for node in xml.findall('.//w:rFonts', NS):
+                        for attr in ('ascii', 'hAnsi', 'eastAsia', 'cs'):
+                            self.assertEqual(node.get(f'{{{render.W}}}{attr}'), '正楷體')
+        # Recognize the actual family; deliberately stop at the existing-PDF guard.
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp, 'font.docx')
+            source.with_suffix('.pdf').write_bytes(b'existing')
+            with patch.object(render.shutil, 'which', side_effect=lambda cmd: '/fake/' + cmd), patch.object(render.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '正楷體,TW-Kai\n', '')):
+                result = render.convert_pdf(source, '全字庫正楷體')
+                self.assertIn('同名 PDF 已存在', result['reason'])
+        # The legacy input label alone must not establish an installed family.
+        with patch.object(render.shutil, 'which', side_effect=lambda cmd: '/fake/' + cmd), patch.object(render.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '全字庫正楷體\n', '')):
+            result = render.convert_pdf('unused.docx', '全字庫正楷體')
+            self.assertIn('未安裝正楷體', result['reason'])
+
     def test_pdf_missing_converter_and_font_reported(self):
         with patch.object(render.shutil, 'which', return_value=None):
             result = render.convert_pdf('unused.docx', '全字庫正楷體')
@@ -180,7 +203,7 @@ class CommitteeReportTests(unittest.TestCase):
         with patch.object(render.shutil, 'which', side_effect=lambda cmd: '/fake/' + cmd), patch.object(render.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, 'Noto Sans CJK TC\n', '')):
             result = render.convert_pdf('unused.docx', '全字庫正楷體')
             self.assertEqual(result['status'], 'unavailable')
-            self.assertIn('未安裝全字庫正楷體', result['reason'])
+            self.assertIn('未安裝正楷體', result['reason'])
 
     def test_pdf_conversion_and_font_verification_paths_simulated(self):
         with tempfile.TemporaryDirectory() as temp:

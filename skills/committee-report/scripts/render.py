@@ -11,7 +11,9 @@ from xml.etree import ElementTree as ET
 
 W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 ET.register_namespace('w', W)
-FONTS = ('全字庫正楷體', '標楷體')
+FONTS = ('正楷體', '標楷體')
+# The public label 全字庫正楷體 is retained as an input alias, not a DOCX family.
+FONT_NAMES = {'正楷體': '正楷體', '全字庫正楷體': '正楷體', '標楷體': '標楷體'}
 STATUSES = ('照案通過', '修正通過', '刪除', '增訂', '保留送大會', '尚未審查', '待確認')
 
 
@@ -24,7 +26,7 @@ def element(tag, attrs=None, text=None):
 def validate(data):
     if data.get('kind') not in ('comparison', 'report'):
         raise ValueError('kind 必須是 comparison 或 report')
-    if data.get('font', FONTS[0]) not in FONTS:
+    if data.get('font', FONTS[0]) not in FONT_NAMES:
         raise ValueError('僅支援全字庫正楷體或標楷體，不得替換成黑體')
     if not isinstance(data.get('rows'), list) or not data['rows']:
         raise ValueError('至少需要一條條文')
@@ -186,7 +188,7 @@ def paragraph(text, font, bold=False):
 
 def write_docx(data, destination):
     validate(data)
-    font = data.get('font', FONTS[0])
+    font = FONT_NAMES[data.get('font', FONTS[0])]
     document = element('document')
     body = element('body')
     document.append(body)
@@ -261,8 +263,9 @@ def write_docx(data, destination):
 
 def convert_pdf(docx, font):
     """Fail closed on unavailable fonts/converter; preserve the editable DOCX."""
-    if font not in FONTS:
+    if font not in FONT_NAMES:
         return {'status': 'unavailable', 'reason': '字體不符合指定楷體'}
+    font = FONT_NAMES[font]
     converter = shutil.which('soffice') or shutil.which('libreoffice')
     fontconfig = shutil.which('fc-list')
     if not converter:
@@ -271,7 +274,7 @@ def convert_pdf(docx, font):
         return {'status': 'unavailable', 'reason': '無法確認指定楷體已安裝，未執行可能替換字體的轉換'}
     try:
         fonts = subprocess.run([fontconfig, '--format=%{family}\n'], capture_output=True, text=True, check=True, timeout=30).stdout
-        aliases = {'全字庫正楷體': ('全字庫正楷體', 'TW-Kai', 'TW-Kai-98_1'), '標楷體': ('標楷體', 'DFKai-SB', 'BiauKai')}
+        aliases = {'正楷體': ('正楷體', 'TW-Kai', 'TW-Kai-98_1'), '標楷體': ('標楷體', 'DFKai-SB', 'BiauKai')}
         installed = {name.strip() for line in fonts.splitlines() for name in line.split(',')}
         if not installed.intersection(aliases[font]):
             return {'status': 'unavailable', 'reason': f'環境未安裝{font}；DOCX 已設定此字體，但開啟端仍須安裝，未轉換 PDF，避免無聲替換'}
@@ -291,7 +294,7 @@ def convert_pdf(docx, font):
                 return {'status': 'unavailable', 'reason': '轉換器可用但缺少 pdffonts，無法驗證 PDF 實際使用楷體，未交付 PDF'}
             inspection = subprocess.run([inspector, str(generated)], capture_output=True, text=True, check=True, timeout=30).stdout
             font_rows = [line.split() for line in inspection.splitlines()[2:] if line.strip()]
-            allowed_names = ('tw-kai', 'twkai', 'dfkai', 'biaukai', '全字庫正楷體', '標楷體')
+            allowed_names = ('tw-kai', 'twkai', 'dfkai', 'biaukai', '正楷體', '標楷體')
             if not font_rows or any(not any(alias in row[0].lower() for alias in allowed_names) or len(row) < 4 or row[-5] != 'yes' for row in font_rows):
                 return {'status': 'failed', 'reason': 'PDF 字體未通過楷體與內嵌檢查，未交付可能替換字體的 PDF', 'details': inspection}
             with target.open('xb') as output:
@@ -310,9 +313,10 @@ def main():
     try:
         data = json.loads(args.input.read_text(encoding='utf-8'))
         path = write_docx(data, args.output)
-        result = {'docx': str(path), 'font': data.get('font', FONTS[0]), 'pdf': {'status': 'not_requested', 'reason': '尚未要求轉換；DOCX 字體設定不代表本機已安裝字體'}}
+        font = FONT_NAMES[data.get('font', FONTS[0])]
+        result = {'docx': str(path), 'font': font, 'pdf': {'status': 'not_requested', 'reason': '尚未要求轉換；DOCX 字體設定不代表本機已安裝字體'}}
         if args.pdf:
-            result['pdf'] = convert_pdf(path, data.get('font', FONTS[0]))
+            result['pdf'] = convert_pdf(path, font)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if not args.pdf or result['pdf']['status'] == 'generated' else 2
     except (ValueError, KeyError, OSError) as exc:
